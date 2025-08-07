@@ -112,7 +112,10 @@ const barClasses = computed(() => {
 
 <style scoped>
 .progress-bar-stripes {
-  @apply absolute inset-0 bg-gradient-to-r;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   background-image: linear-gradient(
     45deg,
     rgba(255, 255, 255, 0.15) 25%,

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import axios from 'axios'
-import type { DashboardStats, Goal, Task, WeeklyProgress, MonthlyProgress } from '@/types'
+import type { DashboardStats, Goal, Task, WeeklyProgress, MonthlyProgress } from '../types'
 
 export const useDashboardStore = defineStore('dashboard', () => {
   // State
