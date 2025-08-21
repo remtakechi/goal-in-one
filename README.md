@@ -279,12 +279,6 @@ SESSION_DOMAIN=.your-domain.com
 - **TailwindCSS**: ユーティリティファーストCSSフレームワーク
 - **Chart.js**: 美しいデータ可視化ライブラリ
 
-## 📞 サポート
-
-- **Issues**: [GitHub Issues](https://github.com/your-username/goal-in-one/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/goal-in-one/discussions)
-- **Email**: support@goal-in-one.com
-
 ---
 
 **Goal in One**で、あなたの目標達成の旅を始めましょう！ 🚀✨
