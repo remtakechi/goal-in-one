@@ -72,7 +72,7 @@ class YourFormRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $turnstile_rule = new TurnstileRule;
+            $turnstile_rule = new TurnstileRule();
 
             $turnstile_rule->validate(
                 'cf-turnstile-response',
@@ -86,27 +86,43 @@ class YourFormRequest extends FormRequest
 }
 ```
 
-### 2. Bladeテンプレートに追加
+### 2. Blade条件ディレクティブを登録
+
+`app/Providers/AppServiceProvider.php`の`boot()`で、Turnstile有効判定のディレクティブを登録します：
+
+```php
+use Illuminate\Support\Facades\Blade;
+use App\Services\TurnstileService;
+
+public function boot(): void
+{
+    Blade::if('turnstile', fn () => app(TurnstileService::class)->isConfigured());
+}
+```
+
+これにより、Blade内で`@turnstile ... @endturnstile`が使用可能になります。
+
+### 3. Bladeテンプレートに追加
 
 #### `<head>`内に追加：
 
 ```blade
-@if(is_turnstile_configured())
+@turnstile
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-@endif
+@endturnstile
 ```
 
 #### `<form>`内に追加：
 
 ```blade
-@if(is_turnstile_configured())
+@turnstile
     <div class="form-group">
         <div class="cf-turnstile" data-sitekey="{{ config('app.turnstile_site_key') }}" data-language="ja"></div>
         @error('cf-turnstile-response')
             <div class="error">{{ $message }}</div>
         @enderror
     </div>
-@endif
+@endturnstile
 ```
 
 ### 完了！
@@ -137,36 +153,6 @@ ValidationRuleインターフェースを実装したカスタムバリデーシ
 - Turnstileが無効な場合、バリデーションをスキップ
 - 有効な場合のみCloudflare APIで検証
 - `cf-turnstile-response`はTurnstile公式JSがbladeに自動追記するトークン名
-
-### ヘルパー関数
-
-`app/helpers.php`（composer.jsonに追記して、自動読み込み可能にする）
-
-#### `is_turnstile_configured(): bool`
-
-Turnstileが有効かつ正しく設定されているかを判定するヘルパー関数
-
-**使用方法：**
-
-```blade
-{{-- Bladeテンプレートで使用 --}}
-@if(is_turnstile_configured())
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-@endif
-
-@if(is_turnstile_configured())
-    <div class="cf-turnstile" data-sitekey="{{ config('app.turnstile_site_key') }}"></div>
-@endif
-```
-
-**内部実装：**
-
-```php
-function is_turnstile_configured()
-{
-    return app(TurnstileService::class)->isConfigured();
-}
-```
 
 ## トラブルシューティング
 

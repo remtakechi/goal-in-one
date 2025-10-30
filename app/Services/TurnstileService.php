@@ -48,7 +48,7 @@ class TurnstileService
      * TurnstileトークンをCloudflare APIで検証
      *
      * @param  string  $token  cf-turnstile-responseの値
-     * @return array Cloudflare APIのレスポンス（success, challenge_ts, hostname等を含む）
+     * @return array ['success' => bool, 'error-codes'? => array]
      */
     public function verify(string $token): array
     {

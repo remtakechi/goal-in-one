@@ -46,7 +46,7 @@ class StoreUserRequest extends FormRequest
         // 基本バリデーション（email、passwordなど）が完了した後に実行されるフック
         $validator->after(function (Validator $validator) {
             // TurnstileRuleのインスタンスを生成
-            $turnstile_rule = new TurnstileRule;
+            $turnstile_rule = new TurnstileRule();
 
             // Turnstile検証を実行
             $turnstile_rule->validate(
