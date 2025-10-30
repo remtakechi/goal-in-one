@@ -38,17 +38,22 @@ class StoreUserRequest extends FormRequest
     /**
      * バリデーション後の追加処理
      * Turnstile認証をここで実行することで、基本的なバリデーションと分離
+     *
+     * @param Validator $validator Laravelのバリデーターインスタンス
      */
     public function withValidator(Validator $validator): void
     {
+        // 基本バリデーション（email、passwordなど）が完了した後に実行されるフック
         $validator->after(function (Validator $validator) {
-            // Turnstile認証を実行
+            // TurnstileRuleのインスタンスを生成
             $turnstile_rule = new TurnstileRule;
 
+            // Turnstile検証を実行
             $turnstile_rule->validate(
-                'cf-turnstile-response',
-                $this->input('cf-turnstile-response'),
+                'cf-turnstile-response',  // 属性名
+                $this->input('cf-turnstile-response'),  // フロントエンドから送信されたトークン
                 function (string $message) use ($validator) {
+                    // 検証失敗時のコールバック：エラーメッセージをバリデーターに追加
                     $validator->errors()->add('cf-turnstile-response', $message);
                 }
             );

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class SimpleRegistrationController extends Controller
@@ -32,9 +31,7 @@ class SimpleRegistrationController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        // 自動ログイン
-        Auth::login($user);
-
-        return redirect('/')->with('success', '登録が完了しました！');
+        // 登録完了後、ログインページにリダイレクト
+        return redirect('/login')->with('success', '登録が完了しました！ログインしてください。');
     }
 }
