@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Tokyo',
 
     /*
     |--------------------------------------------------------------------------
@@ -78,11 +78,11 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'ja'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'ja_JP'),
 
     /*
     |--------------------------------------------------------------------------
@@ -123,4 +123,23 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Turnstile設定（bot対策）
+    |--------------------------------------------------------------------------
+    |
+    | These configuration options determine Turnstile keys and global settings.
+    |
+    */
+    // Turnstileを使用するかどうか
+    'is_use_turnstile' => (bool) env('IS_USE_TURNSTILE', false),
+    // Turnstileのサイト鍵(CloudflareのTurnstile管理画面で発行されている)
+    'turnstile_site_key' => env('TURNSTILE_SITE_KEY', ''),
+    // Turnstileの秘密鍵(CloudflareのTurnstile管理画面で発行されている)
+    'turnstile_secret_key' => env('TURNSTILE_SECRET_KEY', ''),
+    // Turnstileの認証失敗時のメッセージ（サイト毎に異なる場合に使用）
+    'turnstile_error_msg' => 'Bot対策認証に失敗しました。再度お試しください。',
+
+    // Honeypotフィールド名（ボット検知用の罠フィールド）
+    'honeypot_field_name' => env('HONEYPOT_FIELD_NAME', 'company_name'),
 ];

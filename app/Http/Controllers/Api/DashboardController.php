@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Goal;
 use App\Models\Task;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -17,30 +17,30 @@ class DashboardController extends Controller
     public function stats(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         // Basic counts
         $totalGoals = $user->goals()->count();
         $activeGoals = $user->goals()->where('status', 'active')->count();
         $completedGoals = $user->goals()->where('status', 'completed')->count();
-        
+
         $totalTasks = Task::whereHas('goal', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->count();
-        
+
         $completedTasks = Task::whereHas('goal', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->where('status', 'completed')->count();
-        
+
         $pendingTasks = Task::whereHas('goal', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->where('status', 'pending')->count();
-        
+
         $overdueTasks = Task::whereHas('goal', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->where('status', 'pending')
-          ->where('due_date', '<', now())
-          ->whereNotNull('due_date')
-          ->count();
+            ->where('due_date', '<', now())
+            ->whereNotNull('due_date')
+            ->count();
 
         // Recent activity
         $recentGoals = $user->goals()
@@ -63,20 +63,20 @@ class DashboardController extends Controller
         $upcomingTasks = Task::whereHas('goal', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->where('status', 'pending')
-          ->whereNotNull('due_date')
-          ->where('due_date', '>', now())
-          ->orderBy('due_date', 'asc')
-          ->limit(5)
-          ->get()
-          ->map(function ($task) {
-              return [
-                  'uuid' => $task->uuid,
-                  'title' => $task->title,
-                  'due_date' => $task->due_date,
-                  'days_until_due' => $task->days_until_due,
-                  'goal_title' => $task->goal->title,
-              ];
-          });
+            ->whereNotNull('due_date')
+            ->where('due_date', '>', now())
+            ->orderBy('due_date', 'asc')
+            ->limit(5)
+            ->get()
+            ->map(function ($task) {
+                return [
+                    'uuid' => $task->uuid,
+                    'title' => $task->title,
+                    'due_date' => $task->due_date,
+                    'days_until_due' => $task->days_until_due,
+                    'goal_title' => $task->goal->title,
+                ];
+            });
 
         // Weekly progress
         $weeklyProgress = $this->getWeeklyProgress($user);
@@ -85,9 +85,9 @@ class DashboardController extends Controller
         $taskTypeDistribution = Task::whereHas('goal', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->selectRaw('type, count(*) as count')
-          ->groupBy('type')
-          ->pluck('count', 'type')
-          ->toArray();
+            ->groupBy('type')
+            ->pluck('count', 'type')
+            ->toArray();
 
         return response()->json([
             'stats' => [
@@ -122,11 +122,11 @@ class DashboardController extends Controller
 
         for ($i = 0; $i < 7; $i++) {
             $date = $startDate->copy()->addDays($i);
-            
+
             $completedTasks = Task::whereHas('goal', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->whereDate('completed_at', $date->toDateString())
-              ->count();
+                ->count();
 
             $weeklyData[] = [
                 'date' => $date->toDateString(),
@@ -148,7 +148,7 @@ class DashboardController extends Controller
             ->with(['tasks'])
             ->first();
 
-        if (!$goal) {
+        if (! $goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);
@@ -163,7 +163,7 @@ class DashboardController extends Controller
 
         for ($i = 0; $i < 6; $i++) {
             $date = $startDate->copy()->addMonths($i);
-            
+
             $completedInMonth = $goal->tasks()
                 ->whereYear('completed_at', $date->year)
                 ->whereMonth('completed_at', $date->month)

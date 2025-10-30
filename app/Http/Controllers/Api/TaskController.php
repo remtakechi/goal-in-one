@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Goal;
 use App\Models\Task;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
@@ -19,27 +19,27 @@ class TaskController extends Controller
         $tasks = Task::whereHas('goal', function ($query) use ($request) {
             $query->where('user_id', $request->user()->id);
         })
-        ->with('goal:uuid,title')
-        ->orderBy('created_at', 'desc')
-        ->get()
-        ->map(function ($task) {
-            return [
-                'uuid' => $task->uuid,
-                'title' => $task->title,
-                'description' => $task->description,
-                'type' => $task->type,
-                'status' => $task->status,
-                'recurrence_type' => $task->recurrence_type,
-                'due_date' => $task->due_date,
-                'completed_at' => $task->completed_at,
-                'is_overdue' => $task->is_overdue,
-                'days_until_due' => $task->days_until_due,
-                'goal_title' => $task->goal->title ?? null,
-                'goal_uuid' => $task->goal->uuid ?? null,
-                'created_at' => $task->created_at,
-                'updated_at' => $task->updated_at,
-            ];
-        });
+            ->with('goal:uuid,title')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($task) {
+                return [
+                    'uuid' => $task->uuid,
+                    'title' => $task->title,
+                    'description' => $task->description,
+                    'type' => $task->type,
+                    'status' => $task->status,
+                    'recurrence_type' => $task->recurrence_type,
+                    'due_date' => $task->due_date,
+                    'completed_at' => $task->completed_at,
+                    'is_overdue' => $task->is_overdue,
+                    'days_until_due' => $task->days_until_due,
+                    'goal_title' => $task->goal->title ?? null,
+                    'goal_uuid' => $task->goal->uuid ?? null,
+                    'created_at' => $task->created_at,
+                    'updated_at' => $task->updated_at,
+                ];
+            });
 
         return response()->json([
             'tasks' => $tasks,
@@ -71,7 +71,7 @@ class TaskController extends Controller
         $goal = null;
         if ($request->goal_uuid) {
             $goal = $request->user()->goals()->where('uuid', $request->goal_uuid)->first();
-            if (!$goal) {
+            if (! $goal) {
                 return response()->json([
                     'message' => '指定された目標が見つかりません。',
                 ], 404);
@@ -120,7 +120,7 @@ class TaskController extends Controller
     {
         $goal = $request->user()->goals()->where('uuid', $goalUuid)->first();
 
-        if (!$goal) {
+        if (! $goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);
@@ -158,7 +158,7 @@ class TaskController extends Controller
     {
         $goal = $request->user()->goals()->where('uuid', $goalUuid)->first();
 
-        if (!$goal) {
+        if (! $goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);
@@ -215,7 +215,7 @@ class TaskController extends Controller
             $query->where('user_id', $request->user()->id);
         })->where('uuid', $uuid)->first();
 
-        if (!$task) {
+        if (! $task) {
             return response()->json([
                 'message' => 'タスクが見つかりません。',
             ], 404);
@@ -248,7 +248,7 @@ class TaskController extends Controller
             $query->where('user_id', $request->user()->id);
         })->where('uuid', $uuid)->first();
 
-        if (!$task) {
+        if (! $task) {
             return response()->json([
                 'message' => 'タスクが見つかりません。',
             ], 404);
@@ -271,7 +271,7 @@ class TaskController extends Controller
         }
 
         $updateData = $request->only(['title', 'description', 'type', 'recurrence_type', 'due_date', 'status']);
-        
+
         // Handle status change to completed
         if (isset($updateData['status']) && $updateData['status'] === 'completed' && $task->status !== 'completed') {
             $task->markAsCompleted();
@@ -311,7 +311,7 @@ class TaskController extends Controller
             $query->where('user_id', $request->user()->id);
         })->where('uuid', $uuid)->first();
 
-        if (!$task) {
+        if (! $task) {
             return response()->json([
                 'message' => 'タスクが見つかりません。',
             ], 404);
@@ -333,7 +333,7 @@ class TaskController extends Controller
             $query->where('user_id', $request->user()->id);
         })->where('uuid', $uuid)->first();
 
-        if (!$task) {
+        if (! $task) {
             return response()->json([
                 'message' => 'タスクが見つかりません。',
             ], 404);

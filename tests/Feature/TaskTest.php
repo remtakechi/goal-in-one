@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Goal;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -17,7 +17,7 @@ class TaskTest extends TestCase
     {
         $user = User::factory()->create();
         $token = $user->createToken('auth_token')->plainTextToken;
-        
+
         return [$user, $token];
     }
 
@@ -34,22 +34,22 @@ class TaskTest extends TestCase
         ];
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/tasks', $taskData);
 
         $response->assertStatus(201)
-                ->assertJsonStructure([
-                    'id',
-                    'uuid',
-                    'title',
-                    'description',
-                    'type',
-                    'status',
-                    'is_completed',
-                    'goal_id',
-                    'created_at',
-                    'updated_at',
-                ]);
+            ->assertJsonStructure([
+                'id',
+                'uuid',
+                'title',
+                'description',
+                'type',
+                'status',
+                'is_completed',
+                'goal_id',
+                'created_at',
+                'updated_at',
+            ]);
 
         $this->assertDatabaseHas('tasks', [
             'user_id' => $user->id,
@@ -73,14 +73,14 @@ class TaskTest extends TestCase
         ];
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/tasks', $taskData);
 
         $response->assertStatus(201)
-                ->assertJson([
-                    'type' => 'recurring',
-                    'recurring_type' => 'daily',
-                ]);
+            ->assertJson([
+                'type' => 'recurring',
+                'recurring_type' => 'daily',
+            ]);
 
         $this->assertDatabaseHas('tasks', [
             'user_id' => $user->id,
@@ -106,14 +106,14 @@ class TaskTest extends TestCase
         ];
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/tasks', $taskData);
 
         $response->assertStatus(201)
-                ->assertJson([
-                    'type' => 'deadline',
-                    'due_date' => $dueDate,
-                ]);
+            ->assertJson([
+                'type' => 'deadline',
+                'due_date' => $dueDate,
+            ]);
 
         $this->assertDatabaseHas('tasks', [
             'user_id' => $user->id,
@@ -133,13 +133,13 @@ class TaskTest extends TestCase
         ];
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/tasks', $taskData);
 
         $response->assertStatus(201)
-                ->assertJson([
-                    'goal_id' => null,
-                ]);
+            ->assertJson([
+                'goal_id' => null,
+            ]);
 
         $this->assertDatabaseHas('tasks', [
             'user_id' => $user->id,
@@ -152,13 +152,13 @@ class TaskTest extends TestCase
     {
         [$user, $token] = $this->authenticatedUser();
         $goal = Goal::factory()->create(['user_id' => $user->id]);
-        
+
         // Create tasks for the user
         Task::factory()->count(3)->create([
             'user_id' => $user->id,
             'goal_id' => $goal->id,
         ]);
-        
+
         // Create tasks for another user (should not be returned)
         $otherUser = User::factory()->create();
         $otherGoal = Goal::factory()->create(['user_id' => $otherUser->id]);
@@ -168,24 +168,24 @@ class TaskTest extends TestCase
         ]);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/tasks');
 
         $response->assertStatus(200)
-                ->assertJsonCount(3)
-                ->assertJsonStructure([
-                    '*' => [
-                        'id',
-                        'uuid',
-                        'title',
-                        'description',
-                        'type',
-                        'status',
-                        'is_completed',
-                        'created_at',
-                        'updated_at',
-                    ]
-                ]);
+            ->assertJsonCount(3)
+            ->assertJsonStructure([
+                '*' => [
+                    'id',
+                    'uuid',
+                    'title',
+                    'description',
+                    'type',
+                    'status',
+                    'is_completed',
+                    'created_at',
+                    'updated_at',
+                ],
+            ]);
     }
 
     public function test_authenticated_user_can_complete_task()
@@ -199,14 +199,14 @@ class TaskTest extends TestCase
         ]);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson("/api/tasks/{$task->uuid}/complete");
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'is_completed' => true,
-                    'status' => 'completed',
-                ]);
+            ->assertJson([
+                'is_completed' => true,
+                'status' => 'completed',
+            ]);
 
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
@@ -236,15 +236,15 @@ class TaskTest extends TestCase
         ];
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->putJson("/api/tasks/{$task->uuid}", $updateData);
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'title' => $updateData['title'],
-                    'description' => $updateData['description'],
-                    'status' => $updateData['status'],
-                ]);
+            ->assertJson([
+                'title' => $updateData['title'],
+                'description' => $updateData['description'],
+                'status' => $updateData['status'],
+            ]);
 
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
@@ -264,7 +264,7 @@ class TaskTest extends TestCase
         ]);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->deleteJson("/api/tasks/{$task->uuid}");
 
         $response->assertStatus(204);
@@ -286,21 +286,21 @@ class TaskTest extends TestCase
 
         // Try to view other user's task
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson("/api/tasks/{$otherTask->uuid}");
 
         $response->assertStatus(404);
 
         // Try to update other user's task
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->putJson("/api/tasks/{$otherTask->uuid}", ['title' => 'Hacked']);
 
         $response->assertStatus(404);
 
         // Try to delete other user's task
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->deleteJson("/api/tasks/{$otherTask->uuid}");
 
         $response->assertStatus(404);
@@ -311,11 +311,11 @@ class TaskTest extends TestCase
         [$user, $token] = $this->authenticatedUser();
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/tasks', []);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['title', 'type']);
+            ->assertJsonValidationErrors(['title', 'type']);
     }
 
     public function test_recurring_task_requires_recurring_type()
@@ -328,11 +328,11 @@ class TaskTest extends TestCase
         ];
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/tasks', $taskData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['recurring_type']);
+            ->assertJsonValidationErrors(['recurring_type']);
     }
 
     public function test_deadline_task_requires_due_date()
@@ -345,10 +345,10 @@ class TaskTest extends TestCase
         ];
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/tasks', $taskData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['due_date']);
+            ->assertJsonValidationErrors(['due_date']);
     }
 }

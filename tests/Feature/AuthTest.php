@@ -24,15 +24,15 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/auth/register', $userData);
 
         $response->assertStatus(201)
-                ->assertJsonStructure([
-                    'message',
-                    'user' => [
-                        'uuid',
-                        'name',
-                        'email',
-                    ],
-                    'token'
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'user' => [
+                    'uuid',
+                    'name',
+                    'email',
+                ],
+                'token',
+            ]);
 
         $this->assertDatabaseHas('users', [
             'name' => $userData['name'],
@@ -54,15 +54,15 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/auth/login', $loginData);
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'message',
-                    'user' => [
-                        'uuid',
-                        'name',
-                        'email',
-                    ],
-                    'token'
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'user' => [
+                    'uuid',
+                    'name',
+                    'email',
+                ],
+                'token',
+            ]);
     }
 
     public function test_user_cannot_login_with_invalid_credentials()
@@ -79,9 +79,9 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/auth/login', $loginData);
 
         $response->assertStatus(401)
-                ->assertJson([
-                    'message' => 'メールアドレスまたはパスワードが正しくありません。'
-                ]);
+            ->assertJson([
+                'message' => 'メールアドレスまたはパスワードが正しくありません。',
+            ]);
     }
 
     public function test_authenticated_user_can_logout()
@@ -90,13 +90,13 @@ class AuthTest extends TestCase
         $token = $user->createToken('auth_token')->plainTextToken;
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/auth/logout');
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'ログアウトしました。'
-                ]);
+            ->assertJson([
+                'message' => 'ログアウトしました。',
+            ]);
     }
 
     public function test_authenticated_user_can_get_profile()
@@ -105,17 +105,17 @@ class AuthTest extends TestCase
         $token = $user->createToken('auth_token')->plainTextToken;
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/auth/user');
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'user' => [
-                        'uuid',
-                        'name',
-                        'email',
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'user' => [
+                    'uuid',
+                    'name',
+                    'email',
+                ],
+            ]);
     }
 
     public function test_unauthenticated_user_cannot_access_protected_routes()
@@ -130,7 +130,7 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/auth/register', []);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['name', 'email', 'password']);
+            ->assertJsonValidationErrors(['name', 'email', 'password']);
     }
 
     public function test_registration_requires_unique_email()
@@ -147,7 +147,7 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/auth/register', $userData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['email']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     public function test_registration_requires_password_confirmation()
@@ -162,6 +162,6 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/auth/register', $userData);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['password']);
+            ->assertJsonValidationErrors(['password']);
     }
 }

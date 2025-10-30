@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Goal;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class GoalController extends Controller
@@ -16,7 +15,7 @@ class GoalController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $goals = $user->goals()
             ->with(['tasks' => function ($query) {
                 $query->select('id', 'goal_id', 'status');
@@ -93,7 +92,7 @@ class GoalController extends Controller
             }])
             ->first();
 
-        if (!$goal) {
+        if (! $goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);
@@ -151,14 +150,14 @@ class GoalController extends Controller
 
         $goal = $request->user()->goals()->where('uuid', $uuid)->first();
 
-        if (!$goal) {
+        if (! $goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);
         }
 
         $updateData = $request->only(['title', 'description', 'status']);
-        
+
         // If marking as completed, set completed_at timestamp
         if (isset($updateData['status']) && $updateData['status'] === 'completed') {
             $updateData['completed_at'] = now();
@@ -192,7 +191,7 @@ class GoalController extends Controller
     {
         $goal = $request->user()->goals()->where('uuid', $uuid)->first();
 
-        if (!$goal) {
+        if (! $goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);

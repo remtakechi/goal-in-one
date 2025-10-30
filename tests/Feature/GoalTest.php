@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Goal;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -16,7 +16,7 @@ class GoalTest extends TestCase
     {
         $user = User::factory()->create();
         $token = $user->createToken('auth_token')->plainTextToken;
-        
+
         return [$user, $token];
     }
 
@@ -31,21 +31,21 @@ class GoalTest extends TestCase
         ];
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/goals', $goalData);
 
         $response->assertStatus(201)
-                ->assertJsonStructure([
-                    'id',
-                    'uuid',
-                    'title',
-                    'description',
-                    'target_date',
-                    'status',
-                    'progress_percentage',
-                    'created_at',
-                    'updated_at',
-                ]);
+            ->assertJsonStructure([
+                'id',
+                'uuid',
+                'title',
+                'description',
+                'target_date',
+                'status',
+                'progress_percentage',
+                'created_at',
+                'updated_at',
+            ]);
 
         $this->assertDatabaseHas('goals', [
             'user_id' => $user->id,
@@ -57,46 +57,22 @@ class GoalTest extends TestCase
     public function test_authenticated_user_can_list_their_goals()
     {
         [$user, $token] = $this->authenticatedUser();
-        
+
         // Create some goals for the user
         Goal::factory()->count(3)->create(['user_id' => $user->id]);
-        
+
         // Create goals for another user (should not be returned)
         $otherUser = User::factory()->create();
         Goal::factory()->count(2)->create(['user_id' => $otherUser->id]);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/goals');
 
         $response->assertStatus(200)
-                ->assertJsonCount(3)
-                ->assertJsonStructure([
-                    '*' => [
-                        'id',
-                        'uuid',
-                        'title',
-                        'description',
-                        'target_date',
-                        'status',
-                        'progress_percentage',
-                        'created_at',
-                        'updated_at',
-                    ]
-                ]);
-    }
-
-    public function test_authenticated_user_can_view_specific_goal()
-    {
-        [$user, $token] = $this->authenticatedUser();
-        $goal = Goal::factory()->create(['user_id' => $user->id]);
-
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-        ])->getJson("/api/goals/{$goal->uuid}");
-
-        $response->assertStatus(200)
-                ->assertJsonStructure([
+            ->assertJsonCount(3)
+            ->assertJsonStructure([
+                '*' => [
                     'id',
                     'uuid',
                     'title',
@@ -106,7 +82,31 @@ class GoalTest extends TestCase
                     'progress_percentage',
                     'created_at',
                     'updated_at',
-                ]);
+                ],
+            ]);
+    }
+
+    public function test_authenticated_user_can_view_specific_goal()
+    {
+        [$user, $token] = $this->authenticatedUser();
+        $goal = Goal::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->getJson("/api/goals/{$goal->uuid}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'id',
+                'uuid',
+                'title',
+                'description',
+                'target_date',
+                'status',
+                'progress_percentage',
+                'created_at',
+                'updated_at',
+            ]);
     }
 
     public function test_authenticated_user_can_update_their_goal()
@@ -121,15 +121,15 @@ class GoalTest extends TestCase
         ];
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->putJson("/api/goals/{$goal->uuid}", $updateData);
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'title' => $updateData['title'],
-                    'description' => $updateData['description'],
-                    'status' => $updateData['status'],
-                ]);
+            ->assertJson([
+                'title' => $updateData['title'],
+                'description' => $updateData['description'],
+                'status' => $updateData['status'],
+            ]);
 
         $this->assertDatabaseHas('goals', [
             'id' => $goal->id,
@@ -145,7 +145,7 @@ class GoalTest extends TestCase
         $goal = Goal::factory()->create(['user_id' => $user->id]);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->deleteJson("/api/goals/{$goal->uuid}");
 
         $response->assertStatus(204);
@@ -163,21 +163,21 @@ class GoalTest extends TestCase
 
         // Try to view other user's goal
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson("/api/goals/{$otherGoal->uuid}");
 
         $response->assertStatus(404);
 
         // Try to update other user's goal
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->putJson("/api/goals/{$otherGoal->uuid}", ['title' => 'Hacked']);
 
         $response->assertStatus(404);
 
         // Try to delete other user's goal
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->deleteJson("/api/goals/{$otherGoal->uuid}");
 
         $response->assertStatus(404);
@@ -208,11 +208,11 @@ class GoalTest extends TestCase
         [$user, $token] = $this->authenticatedUser();
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/goals', []);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['title']);
+            ->assertJsonValidationErrors(['title']);
     }
 
     public function test_goal_title_must_be_string()
@@ -220,10 +220,10 @@ class GoalTest extends TestCase
         [$user, $token] = $this->authenticatedUser();
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/goals', ['title' => 123]);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['title']);
+            ->assertJsonValidationErrors(['title']);
     }
 }

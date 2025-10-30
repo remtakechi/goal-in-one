@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
@@ -111,6 +111,7 @@ class Goal extends Model
         if ($total === 0) {
             return 0;
         }
+
         return round(($this->completed_tasks_count / $total) * 100, 2);
     }
 }
