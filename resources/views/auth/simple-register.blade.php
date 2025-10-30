@@ -6,9 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>新規登録 - Goal in One</title>
     <link rel="stylesheet" href="{{ asset('css/simple-register.css') }}">
-    @if(is_turnstile_configured())
+    @turnstile
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    @endif
+    @endturnstile
 </head>
 <body>
     <div class="container">
@@ -93,14 +93,14 @@
                 aria-hidden="true"
             >
 
-            @if(is_turnstile_configured())
+            @turnstile
                 <div class="form-group">
                     <div class="cf-turnstile" data-sitekey="{{ config('app.turnstile_site_key') }}" data-language="ja"></div>
                     @error('cf-turnstile-response')
                         <div class="error">{{ $message }}</div>
                     @enderror
                 </div>
-            @endif
+            @endturnstile
 
             <button type="submit" class="btn">アカウントを作成</button>
         </form>
