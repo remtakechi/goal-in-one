@@ -92,7 +92,7 @@ class GoalController extends Controller
             }])
             ->first();
 
-        if (! $goal) {
+        if (!$goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);
@@ -150,7 +150,7 @@ class GoalController extends Controller
 
         $goal = $request->user()->goals()->where('uuid', $uuid)->first();
 
-        if (! $goal) {
+        if (!$goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);
@@ -191,7 +191,7 @@ class GoalController extends Controller
     {
         $goal = $request->user()->goals()->where('uuid', $uuid)->first();
 
-        if (! $goal) {
+        if (!$goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);

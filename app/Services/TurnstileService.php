@@ -20,15 +20,8 @@ class TurnstileService
 
     public function __construct()
     {
-        $this->client = $this->createHttpClient();
-    }
-
-    /**
-     * HTTPクライアントを適切な設定で作成
-     */
-    private function createHttpClient(): Client
-    {
-        return new Client([
+        // HTTPクライアントを適切な設定で作成
+        $this->client = new Client([
             'timeout' => 10, // リクエスト全体のタイムアウト（秒）
             'connect_timeout' => 5, // 接続確立のタイムアウト（秒）
         ]);
@@ -40,8 +33,8 @@ class TurnstileService
     public function isConfigured(): bool
     {
         return config('app.is_use_turnstile', false) &&
-               ! empty(config('app.turnstile_site_key', '')) &&
-               ! empty(config('app.turnstile_secret_key', ''));
+               !empty(config('app.turnstile_site_key', '')) &&
+               !empty(config('app.turnstile_secret_key', ''));
     }
 
     /**

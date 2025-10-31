@@ -148,7 +148,7 @@ class DashboardController extends Controller
             ->with(['tasks'])
             ->first();
 
-        if (! $goal) {
+        if (!$goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);

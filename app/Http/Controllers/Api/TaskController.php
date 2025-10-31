@@ -71,7 +71,7 @@ class TaskController extends Controller
         $goal = null;
         if ($request->goal_uuid) {
             $goal = $request->user()->goals()->where('uuid', $request->goal_uuid)->first();
-            if (! $goal) {
+            if (!$goal) {
                 return response()->json([
                     'message' => '指定された目標が見つかりません。',
                 ], 404);
@@ -120,7 +120,7 @@ class TaskController extends Controller
     {
         $goal = $request->user()->goals()->where('uuid', $goalUuid)->first();
 
-        if (! $goal) {
+        if (!$goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);
@@ -158,7 +158,7 @@ class TaskController extends Controller
     {
         $goal = $request->user()->goals()->where('uuid', $goalUuid)->first();
 
-        if (! $goal) {
+        if (!$goal) {
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);
@@ -215,7 +215,7 @@ class TaskController extends Controller
             $query->where('user_id', $request->user()->id);
         })->where('uuid', $uuid)->first();
 
-        if (! $task) {
+        if (!$task) {
             return response()->json([
                 'message' => 'タスクが見つかりません。',
             ], 404);
@@ -248,7 +248,7 @@ class TaskController extends Controller
             $query->where('user_id', $request->user()->id);
         })->where('uuid', $uuid)->first();
 
-        if (! $task) {
+        if (!$task) {
             return response()->json([
                 'message' => 'タスクが見つかりません。',
             ], 404);
@@ -311,7 +311,7 @@ class TaskController extends Controller
             $query->where('user_id', $request->user()->id);
         })->where('uuid', $uuid)->first();
 
-        if (! $task) {
+        if (!$task) {
             return response()->json([
                 'message' => 'タスクが見つかりません。',
             ], 404);
@@ -333,7 +333,7 @@ class TaskController extends Controller
             $query->where('user_id', $request->user()->id);
         })->where('uuid', $uuid)->first();
 
-        if (! $task) {
+        if (!$task) {
             return response()->json([
                 'message' => 'タスクが見つかりません。',
             ], 404);

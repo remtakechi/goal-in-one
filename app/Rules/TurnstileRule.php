@@ -30,7 +30,7 @@ class TurnstileRule implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         // Turnstile機能が無効、または設定不足の場合は認証をスキップ
-        if (! $this->turnstile_service->isConfigured()) {
+        if (!$this->turnstile_service->isConfigured()) {
             return;  // バリデーション通過（開発環境などで便利）
         }
 
@@ -38,7 +38,7 @@ class TurnstileRule implements ValidationRule
         $generic_error = config('app.turnstile_error_msg', 'Bot対策認証に失敗しました。再度お試しください。');
 
         // 入力値の基本検証(空ではない、文字列、2048文字以内)
-        if (empty($value) || ! is_string($value) || strlen($value) > 2048) {
+        if (empty($value) || !is_string($value) || strlen($value) > 2048) {
             $fail($generic_error);
             return;
         }

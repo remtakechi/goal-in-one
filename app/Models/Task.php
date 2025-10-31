@@ -150,7 +150,7 @@ class Task extends Model
      */
     public function getDaysUntilDueAttribute(): ?int
     {
-        if (! $this->due_date || $this->status === 'completed') {
+        if (!$this->due_date || $this->status === 'completed') {
             return null;
         }
 

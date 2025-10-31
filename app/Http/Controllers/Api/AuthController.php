@@ -66,7 +66,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        if (! Auth::attempt($request->only('email', 'password'))) {
+        if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
                 'message' => 'メールアドレスまたはパスワードが正しくありません。',
             ], 401);
@@ -132,7 +132,7 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        if (! Hash::check($request->password, $user->password)) {
+        if (!Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'パスワードが正しくありません。',
             ], 401);
