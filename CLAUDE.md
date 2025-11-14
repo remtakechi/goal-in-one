@@ -15,7 +15,7 @@ composer dev
 
 # Or start individually:
 php artisan serve          # Laravel server at http://localhost:8000
-npm run dev                # Vite dev server for frontend hot-reload
+yarn dev                   # Vite dev server for frontend hot-reload
 php artisan queue:listen   # Queue worker
 php artisan pail           # Log viewer
 ```
@@ -49,11 +49,11 @@ php artisan migrate:rollback
 ### Building
 ```bash
 # Build frontend for production
-npm run build
+yarn build
 
 # Install dependencies
 composer install
-npm install
+yarn install
 ```
 
 ### Deployment
