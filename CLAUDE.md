@@ -56,29 +56,6 @@ composer install
 yarn install
 ```
 
-### Deployment
-```bash
-# Full deployment to production
-bash deploy.sh
-
-# Deployment with tests
-bash deploy.sh --with-tests
-```
-
-### Cache Management
-```bash
-# Clear all caches
-php artisan config:clear
-php artisan cache:clear
-php artisan route:clear
-php artisan view:clear
-
-# Cache for production
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-```
-
 ## Architecture Overview
 
 ### Backend Architecture (Laravel)

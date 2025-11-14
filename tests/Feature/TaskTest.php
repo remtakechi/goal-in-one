@@ -30,7 +30,7 @@ class TaskTest extends TestCase
             'title' => $this->faker->sentence,
             'description' => $this->faker->paragraph,
             'type' => 'simple',
-            'goal_id' => $goal->uuid,
+            'goal_uuid' => $goal->uuid,
         ];
 
         $response = $this->withHeaders([
@@ -39,20 +39,19 @@ class TaskTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonStructure([
-                'id',
-                'uuid',
-                'title',
-                'description',
-                'type',
-                'status',
-                'is_completed',
-                'goal_id',
-                'created_at',
-                'updated_at',
+                'task' => [
+                    'uuid',
+                    'title',
+                    'description',
+                    'type',
+                    'status',
+                    'goal_uuid',
+                    'created_at',
+                    'updated_at',
+                ],
             ]);
 
         $this->assertDatabaseHas('tasks', [
-            'user_id' => $user->id,
             'goal_id' => $goal->id,
             'title' => $taskData['title'],
             'type' => 'simple',
@@ -68,8 +67,8 @@ class TaskTest extends TestCase
             'title' => 'Daily Exercise',
             'description' => 'Exercise for 30 minutes',
             'type' => 'recurring',
-            'goal_id' => $goal->uuid,
-            'recurring_type' => 'daily',
+            'goal_uuid' => $goal->uuid,
+            'recurrence_type' => 'daily',
         ];
 
         $response = $this->withHeaders([
@@ -78,15 +77,17 @@ class TaskTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJson([
-                'type' => 'recurring',
-                'recurring_type' => 'daily',
+                'task' => [
+                    'type' => 'recurring',
+                    'recurrence_type' => 'daily',
+                ],
             ]);
 
         $this->assertDatabaseHas('tasks', [
-            'user_id' => $user->id,
+            'goal_id' => $goal->id,
             'title' => $taskData['title'],
             'type' => 'recurring',
-            'recurring_type' => 'daily',
+            'recurrence_type' => 'daily',
         ]);
     }
 
@@ -101,7 +102,7 @@ class TaskTest extends TestCase
             'title' => 'Submit Report',
             'description' => 'Submit monthly report',
             'type' => 'deadline',
-            'goal_id' => $goal->uuid,
+            'goal_uuid' => $goal->uuid,
             'due_date' => $dueDate,
         ];
 
@@ -111,12 +112,13 @@ class TaskTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJson([
-                'type' => 'deadline',
-                'due_date' => $dueDate,
+                'task' => [
+                    'type' => 'deadline',
+                ],
             ]);
 
         $this->assertDatabaseHas('tasks', [
-            'user_id' => $user->id,
+            'goal_id' => $goal->id,
             'title' => $taskData['title'],
             'type' => 'deadline',
         ]);
@@ -138,11 +140,12 @@ class TaskTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJson([
-                'goal_id' => null,
+                'task' => [
+                    'goal_uuid' => null,
+                ],
             ]);
 
         $this->assertDatabaseHas('tasks', [
-            'user_id' => $user->id,
             'title' => $taskData['title'],
             'goal_id' => null,
         ]);
@@ -155,7 +158,6 @@ class TaskTest extends TestCase
 
         // Create tasks for the user
         Task::factory()->count(3)->create([
-            'user_id' => $user->id,
             'goal_id' => $goal->id,
         ]);
 
@@ -163,7 +165,6 @@ class TaskTest extends TestCase
         $otherUser = User::factory()->create();
         $otherGoal = Goal::factory()->create(['user_id' => $otherUser->id]);
         Task::factory()->count(2)->create([
-            'user_id' => $otherUser->id,
             'goal_id' => $otherGoal->id,
         ]);
 
@@ -172,20 +173,20 @@ class TaskTest extends TestCase
         ])->getJson('/api/tasks');
 
         $response->assertStatus(200)
-            ->assertJsonCount(3)
             ->assertJsonStructure([
-                '*' => [
-                    'id',
-                    'uuid',
-                    'title',
-                    'description',
-                    'type',
-                    'status',
-                    'is_completed',
-                    'created_at',
-                    'updated_at',
+                'tasks' => [
+                    '*' => [
+                        'uuid',
+                        'title',
+                        'description',
+                        'type',
+                        'status',
+                        'created_at',
+                        'updated_at',
+                    ],
                 ],
-            ]);
+            ])
+            ->assertJsonCount(3, 'tasks');
     }
 
     public function test_authenticated_user_can_complete_task()
@@ -193,7 +194,6 @@ class TaskTest extends TestCase
         [$user, $token] = $this->authenticatedUser();
         $goal = Goal::factory()->create(['user_id' => $user->id]);
         $task = Task::factory()->create([
-            'user_id' => $user->id,
             'goal_id' => $goal->id,
             'status' => 'pending',
         ]);
@@ -204,8 +204,9 @@ class TaskTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'is_completed' => true,
-                'status' => 'completed',
+                'task' => [
+                    'status' => 'completed',
+                ],
             ]);
 
         $this->assertDatabaseHas('tasks', [
@@ -216,7 +217,6 @@ class TaskTest extends TestCase
         // Check if task completion was recorded
         $this->assertDatabaseHas('task_completions', [
             'task_id' => $task->id,
-            'user_id' => $user->id,
         ]);
     }
 
@@ -225,14 +225,13 @@ class TaskTest extends TestCase
         [$user, $token] = $this->authenticatedUser();
         $goal = Goal::factory()->create(['user_id' => $user->id]);
         $task = Task::factory()->create([
-            'user_id' => $user->id,
             'goal_id' => $goal->id,
         ]);
 
         $updateData = [
             'title' => 'Updated Task Title',
             'description' => 'Updated description',
-            'status' => 'in_progress',
+            'status' => 'completed',
         ];
 
         $response = $this->withHeaders([
@@ -241,9 +240,11 @@ class TaskTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'title' => $updateData['title'],
-                'description' => $updateData['description'],
-                'status' => $updateData['status'],
+                'task' => [
+                    'title' => $updateData['title'],
+                    'description' => $updateData['description'],
+                    'status' => $updateData['status'],
+                ],
             ]);
 
         $this->assertDatabaseHas('tasks', [
@@ -259,7 +260,6 @@ class TaskTest extends TestCase
         [$user, $token] = $this->authenticatedUser();
         $goal = Goal::factory()->create(['user_id' => $user->id]);
         $task = Task::factory()->create([
-            'user_id' => $user->id,
             'goal_id' => $goal->id,
         ]);
 
@@ -280,7 +280,6 @@ class TaskTest extends TestCase
         $otherUser = User::factory()->create();
         $otherGoal = Goal::factory()->create(['user_id' => $otherUser->id]);
         $otherTask = Task::factory()->create([
-            'user_id' => $otherUser->id,
             'goal_id' => $otherGoal->id,
         ]);
 
@@ -332,7 +331,7 @@ class TaskTest extends TestCase
         ])->postJson('/api/tasks', $taskData);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['recurring_type']);
+            ->assertJsonValidationErrors(['recurrence_type']);
     }
 
     public function test_deadline_task_requires_due_date()

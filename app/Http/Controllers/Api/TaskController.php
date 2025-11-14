@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CompleteTaskRequest;
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Goal;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Response;
 
 class TaskController extends Controller
 {
@@ -49,24 +52,8 @@ class TaskController extends Controller
     /**
      * Store a newly created task (independent of goal).
      */
-    public function storeIndependent(Request $request): JsonResponse
+    public function storeIndependent(StoreTaskRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'goal_uuid' => 'nullable|string|exists:goals,uuid',
-            'type' => 'required|in:simple,recurring,deadline',
-            'recurrence_type' => 'nullable|required_if:type,recurring|in:daily,weekly,monthly',
-            'due_date' => 'nullable|required_if:type,deadline|date|after:now',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'バリデーションエラーが発生しました。',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         // Find goal if provided
         $goal = null;
         if ($request->goal_uuid) {
@@ -84,11 +71,8 @@ class TaskController extends Controller
             'type' => $request->type,
             'recurrence_type' => $request->recurrence_type,
             'due_date' => $request->due_date,
+            'goal_id' => $goal ? $goal->id : null,
         ]);
-
-        if ($goal) {
-            $task->goal_id = $goal->id;
-        }
 
         $task->save();
 
@@ -154,7 +138,7 @@ class TaskController extends Controller
     /**
      * Store a newly created task.
      */
-    public function store(Request $request, string $goalUuid): JsonResponse
+    public function store(StoreTaskRequest $request, string $goalUuid): JsonResponse
     {
         $goal = $request->user()->goals()->where('uuid', $goalUuid)->first();
 
@@ -162,21 +146,6 @@ class TaskController extends Controller
             return response()->json([
                 'message' => '目標が見つかりません。',
             ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'type' => 'required|in:simple,recurring,deadline',
-            'recurrence_type' => 'nullable|required_if:type,recurring|in:daily,weekly,monthly',
-            'due_date' => 'nullable|required_if:type,deadline|date|after:now',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'バリデーションエラーが発生しました。',
-                'errors' => $validator->errors(),
-            ], 422);
         }
 
         $task = $goal->tasks()->create([
@@ -242,11 +211,11 @@ class TaskController extends Controller
     /**
      * Update the specified task.
      */
-    public function update(Request $request, string $uuid): JsonResponse
+    public function update(UpdateTaskRequest $request, string $uuid): JsonResponse
     {
         $task = Task::whereHas('goal', function ($query) use ($request) {
             $query->where('user_id', $request->user()->id);
-        })->where('uuid', $uuid)->first();
+        })->with('goal')->where('uuid', $uuid)->first();
 
         if (!$task) {
             return response()->json([
@@ -254,33 +223,33 @@ class TaskController extends Controller
             ], 404);
         }
 
-        $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'type' => 'sometimes|required|in:simple,recurring,deadline',
-            'recurrence_type' => 'nullable|required_if:type,recurring|in:daily,weekly,monthly',
-            'due_date' => 'nullable|required_if:type,deadline|date',
-            'status' => 'sometimes|required|in:pending,completed',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'バリデーションエラーが発生しました。',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         $updateData = $request->only(['title', 'description', 'type', 'recurrence_type', 'due_date', 'status']);
 
-        // Handle status change to completed
-        if (isset($updateData['status']) && $updateData['status'] === 'completed' && $task->status !== 'completed') {
-            $task->markAsCompleted();
-        } elseif (isset($updateData['status']) && $updateData['status'] === 'pending' && $task->status === 'completed') {
-            $task->status = 'pending';
-            $task->completed_at = null;
-            $task->save();
-        } else {
-            $task->update($updateData);
+        // Handle status change separately
+        $statusChanged = false;
+        if (isset($updateData['status'])) {
+            if ($updateData['status'] === 'completed' && $task->status !== 'completed') {
+                $task->markAsCompleted();
+                $statusChanged = true;
+            } elseif ($updateData['status'] === 'pending' && $task->status === 'completed') {
+                $task->status = 'pending';
+                $task->completed_at = null;
+                $statusChanged = true;
+            }
+            // Remove status from updateData to avoid double update
+            unset($updateData['status']);
+        }
+
+        // Update other fields if any
+        if (!empty($updateData)) {
+            if ($statusChanged) {
+                $task->update($updateData);
+            } else {
+                $task->update($updateData);
+            }
+        } elseif ($statusChanged) {
+            // Only status changed, reload to get fresh data
+            $task->refresh();
         }
 
         return response()->json([
@@ -296,6 +265,8 @@ class TaskController extends Controller
                 'completed_at' => $task->completed_at,
                 'is_overdue' => $task->is_overdue,
                 'days_until_due' => $task->days_until_due,
+                'goal_uuid' => $task->goal->uuid ?? null,
+                'goal_title' => $task->goal->title ?? null,
                 'created_at' => $task->created_at,
                 'updated_at' => $task->updated_at,
             ],
@@ -305,7 +276,7 @@ class TaskController extends Controller
     /**
      * Remove the specified task.
      */
-    public function destroy(Request $request, string $uuid): JsonResponse
+    public function destroy(Request $request, string $uuid): Response|JsonResponse
     {
         $task = Task::whereHas('goal', function ($query) use ($request) {
             $query->where('user_id', $request->user()->id);
@@ -319,15 +290,13 @@ class TaskController extends Controller
 
         $task->delete();
 
-        return response()->json([
-            'message' => 'タスクを削除しました。',
-        ]);
+        return response()->noContent();
     }
 
     /**
      * Mark task as completed.
      */
-    public function complete(Request $request, string $uuid): JsonResponse
+    public function complete(CompleteTaskRequest $request, string $uuid): JsonResponse
     {
         $task = Task::whereHas('goal', function ($query) use ($request) {
             $query->where('user_id', $request->user()->id);
@@ -345,18 +314,10 @@ class TaskController extends Controller
             ], 400);
         }
 
-        $validator = Validator::make($request->all(), [
-            'notes' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'バリデーションエラーが発生しました。',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         $task->markAsCompleted($request->notes);
+
+        // Reload goal relationship
+        $task->load('goal');
 
         return response()->json([
             'message' => 'タスクを完了しました。',
@@ -371,6 +332,8 @@ class TaskController extends Controller
                 'completed_at' => $task->completed_at,
                 'is_overdue' => $task->is_overdue,
                 'days_until_due' => $task->days_until_due,
+                'goal_uuid' => $task->goal->uuid ?? null,
+                'goal_title' => $task->goal->title ?? null,
                 'created_at' => $task->created_at,
                 'updated_at' => $task->updated_at,
             ],

@@ -67,6 +67,9 @@
                     required
                     autocomplete="new-password"
                 >
+                <small style="color: #666; font-size: 0.85em; margin-top: 4px; display: block;">
+                    8文字以上、大文字・小文字・数字・記号を含む
+                </small>
                 @error('password')
                     <div class="error">{{ $message }}</div>
                 @enderror

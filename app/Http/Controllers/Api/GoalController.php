@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreGoalRequest;
+use App\Http\Requests\UpdateGoalRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Response;
 
 class GoalController extends Controller
 {
@@ -18,7 +20,7 @@ class GoalController extends Controller
 
         $goals = $user->goals()
             ->with(['tasks' => function ($query) {
-                $query->select('id', 'goal_id', 'status');
+                $query->select('uuid', 'goal_id', 'status');
             }])
             ->get()
             ->map(function ($goal) {
@@ -44,20 +46,8 @@ class GoalController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreGoalRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'バリデーションエラーが発生しました。',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         $goal = $request->user()->goals()->create([
             'title' => $request->title,
             'description' => $request->description,
@@ -133,21 +123,8 @@ class GoalController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $uuid): JsonResponse
+    public function update(UpdateGoalRequest $request, string $uuid): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'sometimes|required|in:active,completed,archived',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'バリデーションエラーが発生しました。',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         $goal = $request->user()->goals()->where('uuid', $uuid)->first();
 
         if (!$goal) {
@@ -187,7 +164,7 @@ class GoalController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, string $uuid): JsonResponse
+    public function destroy(Request $request, string $uuid): Response|JsonResponse
     {
         $goal = $request->user()->goals()->where('uuid', $uuid)->first();
 
@@ -199,8 +176,6 @@ class GoalController extends Controller
 
         $goal->delete();
 
-        return response()->json([
-            'message' => '目標を削除しました。',
-        ]);
+        return response()->noContent();
     }
 }

@@ -36,15 +36,15 @@ class GoalTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonStructure([
-                'id',
-                'uuid',
-                'title',
-                'description',
-                'target_date',
-                'status',
-                'progress_percentage',
-                'created_at',
-                'updated_at',
+                'goal' => [
+                    'uuid',
+                    'title',
+                    'description',
+                    'status',
+                    'progress_percentage',
+                    'created_at',
+                    'updated_at',
+                ],
             ]);
 
         $this->assertDatabaseHas('goals', [
@@ -70,20 +70,20 @@ class GoalTest extends TestCase
         ])->getJson('/api/goals');
 
         $response->assertStatus(200)
-            ->assertJsonCount(3)
             ->assertJsonStructure([
-                '*' => [
-                    'id',
-                    'uuid',
-                    'title',
-                    'description',
-                    'target_date',
-                    'status',
-                    'progress_percentage',
-                    'created_at',
-                    'updated_at',
+                'goals' => [
+                    '*' => [
+                        'uuid',
+                        'title',
+                        'description',
+                        'status',
+                        'progress_percentage',
+                        'created_at',
+                        'updated_at',
+                    ],
                 ],
-            ]);
+            ])
+            ->assertJsonCount(3, 'goals');
     }
 
     public function test_authenticated_user_can_view_specific_goal()
@@ -97,15 +97,15 @@ class GoalTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'id',
-                'uuid',
-                'title',
-                'description',
-                'target_date',
-                'status',
-                'progress_percentage',
-                'created_at',
-                'updated_at',
+                'goal' => [
+                    'uuid',
+                    'title',
+                    'description',
+                    'status',
+                    'progress_percentage',
+                    'created_at',
+                    'updated_at',
+                ],
             ]);
     }
 
@@ -126,9 +126,11 @@ class GoalTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'title' => $updateData['title'],
-                'description' => $updateData['description'],
-                'status' => $updateData['status'],
+                'goal' => [
+                    'title' => $updateData['title'],
+                    'description' => $updateData['description'],
+                    'status' => $updateData['status'],
+                ],
             ]);
 
         $this->assertDatabaseHas('goals', [
@@ -185,7 +187,8 @@ class GoalTest extends TestCase
 
     public function test_unauthenticated_user_cannot_access_goals()
     {
-        $goal = Goal::factory()->create();
+        $user = User::factory()->create();
+        $goal = Goal::factory()->create(['user_id' => $user->id]);
 
         $response = $this->getJson('/api/goals');
         $response->assertStatus(401);

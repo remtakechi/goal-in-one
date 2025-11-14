@@ -36,15 +36,20 @@
           />
 
           <!-- Password -->
-          <BaseInput
-            v-model="form.password"
-            type="password"
-            label="パスワード"
-            placeholder="8文字以上のパスワード"
-            required
-            :error="errors.password"
-            autocomplete="new-password"
-          />
+          <div>
+            <BaseInput
+              v-model="form.password"
+              type="password"
+              label="パスワード"
+              placeholder="8文字以上のパスワード"
+              required
+              :error="errors.password"
+              autocomplete="new-password"
+            />
+            <p class="text-xs text-gray-500 mt-1 ml-1">
+              8文字以上、大文字・小文字・数字・記号を含む必要があります
+            </p>
+          </div>
 
           <!-- Password Confirmation -->
           <BaseInput
@@ -62,7 +67,7 @@
             <div class="text-sm text-gray-600">パスワード強度:</div>
             <div class="flex space-x-1">
               <div
-                v-for="i in 4"
+                v-for="i in 5"
                 :key="i"
                 :class="[
                   'h-2 flex-1 rounded-full transition-colors duration-200',
@@ -176,40 +181,45 @@ const errors = reactive({
 const passwordStrength = computed(() => {
   const password = form.password
   if (!password) return 0
-  
+
   let strength = 0
-  
-  // Length check
+
+  // Length check (8+ characters)
   if (password.length >= 8) strength++
-  
+
   // Contains lowercase
   if (/[a-z]/.test(password)) strength++
-  
-  // Contains uppercase or numbers
-  if (/[A-Z]/.test(password) || /\d/.test(password)) strength++
-  
+
+  // Contains uppercase
+  if (/[A-Z]/.test(password)) strength++
+
+  // Contains numbers
+  if (/\d/.test(password)) strength++
+
   // Contains special characters
   if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++
-  
+
   return strength
 })
 
 const getStrengthColor = (strength: number): string => {
   switch (strength) {
     case 1: return 'bg-red-400'
-    case 2: return 'bg-yellow-400'
-    case 3: return 'bg-blue-400'
-    case 4: return 'bg-green-400'
+    case 2: return 'bg-orange-400'
+    case 3: return 'bg-yellow-400'
+    case 4: return 'bg-blue-400'
+    case 5: return 'bg-green-400'
     default: return 'bg-gray-200'
   }
 }
 
 const getStrengthText = (strength: number): string => {
   switch (strength) {
-    case 1: return '弱い'
-    case 2: return '普通'
-    case 3: return '強い'
-    case 4: return '非常に強い'
+    case 1: return '非常に弱い'
+    case 2: return '弱い'
+    case 3: return '普通'
+    case 4: return '強い'
+    case 5: return '非常に強い（すべての要件を満たしています）'
     default: return ''
   }
 }
@@ -246,6 +256,18 @@ const validateForm = (): boolean => {
     isValid = false
   } else if (form.password.length < 8) {
     errors.password = 'パスワードは8文字以上で入力してください'
+    isValid = false
+  } else if (!/[a-z]/.test(form.password)) {
+    errors.password = 'パスワードには小文字を含める必要があります'
+    isValid = false
+  } else if (!/[A-Z]/.test(form.password)) {
+    errors.password = 'パスワードには大文字を含める必要があります'
+    isValid = false
+  } else if (!/\d/.test(form.password)) {
+    errors.password = 'パスワードには数字を含める必要があります'
+    isValid = false
+  } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(form.password)) {
+    errors.password = 'パスワードには記号を含める必要があります'
     isValid = false
   }
 

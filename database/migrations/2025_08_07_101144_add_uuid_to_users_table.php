@@ -22,6 +22,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
+            // SQLiteでは、ユニークインデックスを削除してからカラムを削除する必要がある
+            $table->dropUnique(['uuid']);
             $table->dropColumn('uuid');
         });
     }

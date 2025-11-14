@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('goal_id')->constrained()->onDelete('cascade');
+            $table->foreignId('goal_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('title');
             $table->text('description')->nullable();
             $table->enum('type', ['simple', 'recurring', 'deadline'])->default('simple');
