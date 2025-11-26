@@ -15,10 +15,13 @@ class AuthTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // Disable rate limiting for tests
+        // テスト用にレート制限を無効化
         $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
     }
 
+    /**
+     * ユーザーが新規登録できることを確認
+     */
     public function test_user_can_register()
     {
         $userData = [
@@ -43,10 +46,13 @@ class AuthTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'name' => $userData['name'],
-            'email' => strtolower($userData['email']), // Email is normalized to lowercase
+            'email' => strtolower($userData['email']), // メールアドレスは小文字に正規化される
         ]);
     }
 
+    /**
+     * ユーザーがログインできることを確認
+     */
     public function test_user_can_login()
     {
         $user = User::factory()->create([
@@ -72,6 +78,9 @@ class AuthTest extends TestCase
             ]);
     }
 
+    /**
+     * 無効な認証情報ではログインできないことを確認
+     */
     public function test_user_cannot_login_with_invalid_credentials()
     {
         $user = User::factory()->create([
@@ -91,6 +100,9 @@ class AuthTest extends TestCase
             ]);
     }
 
+    /**
+     * 認証済みユーザーがログアウトできることを確認
+     */
     public function test_authenticated_user_can_logout()
     {
         $user = User::factory()->create();
@@ -106,6 +118,9 @@ class AuthTest extends TestCase
             ]);
     }
 
+    /**
+     * 認証済みユーザーがプロフィールを取得できることを確認
+     */
     public function test_authenticated_user_can_get_profile()
     {
         $user = User::factory()->create();
@@ -125,6 +140,9 @@ class AuthTest extends TestCase
             ]);
     }
 
+    /**
+     * 未認証ユーザーが保護されたルートにアクセスできないことを確認
+     */
     public function test_unauthenticated_user_cannot_access_protected_routes()
     {
         $response = $this->getJson('/api/auth/user');
@@ -132,6 +150,9 @@ class AuthTest extends TestCase
         $response->assertStatus(401);
     }
 
+    /**
+     * 登録には有効なデータが必要であることを確認
+     */
     public function test_registration_requires_valid_data()
     {
         $response = $this->postJson('/api/auth/register', []);
@@ -140,6 +161,9 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['name', 'email', 'password']);
     }
 
+    /**
+     * 登録には一意のメールアドレスが必要であることを確認
+     */
     public function test_registration_requires_unique_email()
     {
         $existingUser = User::factory()->create();
@@ -157,6 +181,9 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['email']);
     }
 
+    /**
+     * 登録にはパスワード確認が必要であることを確認
+     */
     public function test_registration_requires_password_confirmation()
     {
         $userData = [
@@ -172,11 +199,14 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['password']);
     }
 
-    // Name Validation Tests
+    // 名前のバリデーションテスト
+    /**
+     * 登録には名前の最小長が必要であることを確認
+     */
     public function test_registration_requires_name_minimum_length()
     {
         $userData = [
-            'name' => 'A', // Only 1 character
+            'name' => 'A', // 1文字のみ
             'email' => $this->faker->unique()->safeEmail,
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
@@ -188,6 +218,9 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['name']);
     }
 
+    /**
+     * 登録時に名前の前後の空白が削除されることを確認
+     */
     public function test_registration_trims_whitespace_from_name()
     {
         $userData = [
@@ -202,11 +235,14 @@ class AuthTest extends TestCase
         $response->assertStatus(201);
 
         $this->assertDatabaseHas('users', [
-            'name' => 'John Doe', // Whitespace trimmed
+            'name' => 'John Doe', // 前後の空白が削除される
         ]);
     }
 
-    // Email Validation Tests
+    // メールアドレスのバリデーションテスト
+    /**
+     * 登録時にメールアドレスが小文字に正規化されることを確認
+     */
     public function test_registration_normalizes_email_to_lowercase()
     {
         $userData = [
@@ -221,10 +257,13 @@ class AuthTest extends TestCase
         $response->assertStatus(201);
 
         $this->assertDatabaseHas('users', [
-            'email' => 'test@example.com', // Normalized to lowercase
+            'email' => 'test@example.com', // 小文字に正規化される
         ]);
     }
 
+    /**
+     * 登録には有効なメールアドレス形式が必要であることを確認
+     */
     public function test_registration_requires_valid_email_format()
     {
         $invalidEmails = [
@@ -249,13 +288,16 @@ class AuthTest extends TestCase
         }
     }
 
-    // Password Strength Tests
+    // パスワード強度のテスト
+    /**
+     * 登録には小文字を含むパスワードが必要であることを確認
+     */
     public function test_registration_requires_password_with_lowercase()
     {
         $userData = [
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
-            'password' => 'PASSWORD123!', // No lowercase
+            'password' => 'PASSWORD123!', // 小文字がない
             'password_confirmation' => 'PASSWORD123!',
         ];
 
@@ -265,12 +307,15 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['password']);
     }
 
+    /**
+     * 登録には大文字を含むパスワードが必要であることを確認
+     */
     public function test_registration_requires_password_with_uppercase()
     {
         $userData = [
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
-            'password' => 'password123!', // No uppercase
+            'password' => 'password123!', // 大文字がない
             'password_confirmation' => 'password123!',
         ];
 
@@ -280,12 +325,15 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['password']);
     }
 
+    /**
+     * 登録には数字を含むパスワードが必要であることを確認
+     */
     public function test_registration_requires_password_with_numbers()
     {
         $userData = [
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
-            'password' => 'PasswordAbc!', // No numbers
+            'password' => 'PasswordAbc!', // 数字がない
             'password_confirmation' => 'PasswordAbc!',
         ];
 
@@ -295,12 +343,15 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['password']);
     }
 
+    /**
+     * 登録には記号を含むパスワードが必要であることを確認
+     */
     public function test_registration_requires_password_with_symbols()
     {
         $userData = [
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
-            'password' => 'Password123', // No symbols
+            'password' => 'Password123', // 記号がない
             'password_confirmation' => 'Password123',
         ];
 
@@ -310,12 +361,15 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['password']);
     }
 
+    /**
+     * 登録には最小長を満たすパスワードが必要であることを確認
+     */
     public function test_registration_requires_password_minimum_length()
     {
         $userData = [
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
-            'password' => 'Pass1!', // Only 6 characters
+            'password' => 'Pass1!', // 6文字のみ（最小長に満たない）
             'password_confirmation' => 'Pass1!',
         ];
 
@@ -325,6 +379,9 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['password']);
     }
 
+    /**
+     * 様々な有効なパスワード形式が受け入れられることを確認
+     */
     public function test_registration_accepts_various_valid_passwords()
     {
         $validPasswords = [
@@ -353,7 +410,10 @@ class AuthTest extends TestCase
         }
     }
 
-    // Token and Response Tests
+    // トークンとレスポンスのテスト
+    /**
+     * 登録時に認証トークンが返されることを確認
+     */
     public function test_registration_returns_auth_token()
     {
         $userData = [
@@ -371,6 +431,9 @@ class AuthTest extends TestCase
         $this->assertNotEmpty($response->json('token'));
     }
 
+    /**
+     * 登録時にデータベースIDが公開されないことを確認
+     */
     public function test_registration_does_not_expose_database_id()
     {
         $userData = [
@@ -387,6 +450,9 @@ class AuthTest extends TestCase
             ->assertJsonStructure(['user' => ['uuid']]);
     }
 
+    /**
+     * 登録時にパスワードがハッシュ化されることを確認
+     */
     public function test_registration_hashes_password()
     {
         $plainPassword = 'Password123!';

@@ -12,6 +12,9 @@ class GoalTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
+    /**
+     * 認証済みユーザーとトークンを生成するヘルパーメソッド
+     */
     private function authenticatedUser()
     {
         $user = User::factory()->create();
@@ -20,6 +23,9 @@ class GoalTest extends TestCase
         return [$user, $token];
     }
 
+    /**
+     * 認証済みユーザーがゴールを作成できることを確認
+     */
     public function test_authenticated_user_can_create_goal()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -54,14 +60,17 @@ class GoalTest extends TestCase
         ]);
     }
 
+    /**
+     * 認証済みユーザーが自分のゴール一覧を取得できることを確認
+     */
     public function test_authenticated_user_can_list_their_goals()
     {
         [$user, $token] = $this->authenticatedUser();
 
-        // Create some goals for the user
+        // ユーザーのゴールを作成
         Goal::factory()->count(3)->create(['user_id' => $user->id]);
 
-        // Create goals for another user (should not be returned)
+        // 他のユーザーのゴールを作成（返却されないことを確認）
         $otherUser = User::factory()->create();
         Goal::factory()->count(2)->create(['user_id' => $otherUser->id]);
 
@@ -86,6 +95,9 @@ class GoalTest extends TestCase
             ->assertJsonCount(3, 'goals');
     }
 
+    /**
+     * 認証済みユーザーが特定のゴールを閲覧できることを確認
+     */
     public function test_authenticated_user_can_view_specific_goal()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -109,6 +121,9 @@ class GoalTest extends TestCase
             ]);
     }
 
+    /**
+     * 認証済みユーザーが自分のゴールを更新できることを確認
+     */
     public function test_authenticated_user_can_update_their_goal()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -141,6 +156,9 @@ class GoalTest extends TestCase
         ]);
     }
 
+    /**
+     * 認証済みユーザーが自分のゴールを削除できることを確認
+     */
     public function test_authenticated_user_can_delete_their_goal()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -157,27 +175,30 @@ class GoalTest extends TestCase
         ]);
     }
 
+    /**
+     * ユーザーが他のユーザーのゴールにアクセスできないことを確認
+     */
     public function test_user_cannot_access_other_users_goals()
     {
         [$user, $token] = $this->authenticatedUser();
         $otherUser = User::factory()->create();
         $otherGoal = Goal::factory()->create(['user_id' => $otherUser->id]);
 
-        // Try to view other user's goal
+        // 他のユーザーのゴールを閲覧しようとする
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token,
         ])->getJson("/api/goals/{$otherGoal->uuid}");
 
         $response->assertStatus(404);
 
-        // Try to update other user's goal
+        // 他のユーザーのゴールを更新しようとする
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token,
         ])->putJson("/api/goals/{$otherGoal->uuid}", ['title' => 'Hacked']);
 
         $response->assertStatus(404);
 
-        // Try to delete other user's goal
+        // 他のユーザーのゴールを削除しようとする
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token,
         ])->deleteJson("/api/goals/{$otherGoal->uuid}");
@@ -185,6 +206,9 @@ class GoalTest extends TestCase
         $response->assertStatus(404);
     }
 
+    /**
+     * 未認証ユーザーがゴールにアクセスできないことを確認
+     */
     public function test_unauthenticated_user_cannot_access_goals()
     {
         $user = User::factory()->create();
@@ -206,6 +230,9 @@ class GoalTest extends TestCase
         $response->assertStatus(401);
     }
 
+    /**
+     * ゴール作成には有効なデータが必要であることを確認
+     */
     public function test_goal_creation_requires_valid_data()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -218,6 +245,9 @@ class GoalTest extends TestCase
             ->assertJsonValidationErrors(['title']);
     }
 
+    /**
+     * ゴールのタイトルは文字列である必要があることを確認
+     */
     public function test_goal_title_must_be_string()
     {
         [$user, $token] = $this->authenticatedUser();

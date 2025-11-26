@@ -13,6 +13,9 @@ class TaskTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
+    /**
+     * 認証済みユーザーとトークンを生成するヘルパーメソッド
+     */
     private function authenticatedUser()
     {
         $user = User::factory()->create();
@@ -21,6 +24,9 @@ class TaskTest extends TestCase
         return [$user, $token];
     }
 
+    /**
+     * 認証済みユーザーがシンプルタスクを作成できることを確認
+     */
     public function test_authenticated_user_can_create_simple_task()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -58,6 +64,9 @@ class TaskTest extends TestCase
         ]);
     }
 
+    /**
+     * 認証済みユーザーが繰り返しタスクを作成できることを確認
+     */
     public function test_authenticated_user_can_create_recurring_task()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -91,6 +100,9 @@ class TaskTest extends TestCase
         ]);
     }
 
+    /**
+     * 認証済みユーザーが期限付きタスクを作成できることを確認
+     */
     public function test_authenticated_user_can_create_deadline_task()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -124,6 +136,9 @@ class TaskTest extends TestCase
         ]);
     }
 
+    /**
+     * 認証済みユーザーがゴールに紐づかない独立したタスクを作成できることを確認
+     */
     public function test_authenticated_user_can_create_independent_task()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -151,17 +166,20 @@ class TaskTest extends TestCase
         ]);
     }
 
+    /**
+     * 認証済みユーザーが自分のタスク一覧を取得できることを確認
+     */
     public function test_authenticated_user_can_list_their_tasks()
     {
         [$user, $token] = $this->authenticatedUser();
         $goal = Goal::factory()->create(['user_id' => $user->id]);
 
-        // Create tasks for the user
+        // ユーザーのタスクを作成
         Task::factory()->count(3)->create([
             'goal_id' => $goal->id,
         ]);
 
-        // Create tasks for another user (should not be returned)
+        // 他のユーザーのタスクを作成（返却されないことを確認）
         $otherUser = User::factory()->create();
         $otherGoal = Goal::factory()->create(['user_id' => $otherUser->id]);
         Task::factory()->count(2)->create([
@@ -189,6 +207,9 @@ class TaskTest extends TestCase
             ->assertJsonCount(3, 'tasks');
     }
 
+    /**
+     * 認証済みユーザーがタスクを完了できることを確認
+     */
     public function test_authenticated_user_can_complete_task()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -214,12 +235,15 @@ class TaskTest extends TestCase
             'status' => 'completed',
         ]);
 
-        // Check if task completion was recorded
+        // タスク完了記録が作成されたことを確認
         $this->assertDatabaseHas('task_completions', [
             'task_id' => $task->id,
         ]);
     }
 
+    /**
+     * 認証済みユーザーが自分のタスクを更新できることを確認
+     */
     public function test_authenticated_user_can_update_their_task()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -255,6 +279,9 @@ class TaskTest extends TestCase
         ]);
     }
 
+    /**
+     * 認証済みユーザーが自分のタスクを削除できることを確認
+     */
     public function test_authenticated_user_can_delete_their_task()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -274,6 +301,9 @@ class TaskTest extends TestCase
         ]);
     }
 
+    /**
+     * ユーザーが他のユーザーのタスクにアクセスできないことを確認
+     */
     public function test_user_cannot_access_other_users_tasks()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -283,21 +313,21 @@ class TaskTest extends TestCase
             'goal_id' => $otherGoal->id,
         ]);
 
-        // Try to view other user's task
+        // 他のユーザーのタスクを閲覧しようとする
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token,
         ])->getJson("/api/tasks/{$otherTask->uuid}");
 
         $response->assertStatus(404);
 
-        // Try to update other user's task
+        // 他のユーザーのタスクを更新しようとする
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token,
         ])->putJson("/api/tasks/{$otherTask->uuid}", ['title' => 'Hacked']);
 
         $response->assertStatus(404);
 
-        // Try to delete other user's task
+        // 他のユーザーのタスクを削除しようとする
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token,
         ])->deleteJson("/api/tasks/{$otherTask->uuid}");
@@ -305,6 +335,9 @@ class TaskTest extends TestCase
         $response->assertStatus(404);
     }
 
+    /**
+     * タスク作成には有効なデータが必要であることを確認
+     */
     public function test_task_creation_requires_valid_data()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -317,6 +350,9 @@ class TaskTest extends TestCase
             ->assertJsonValidationErrors(['title', 'type']);
     }
 
+    /**
+     * 繰り返しタスクには繰り返しタイプが必要であることを確認
+     */
     public function test_recurring_task_requires_recurring_type()
     {
         [$user, $token] = $this->authenticatedUser();
@@ -334,6 +370,9 @@ class TaskTest extends TestCase
             ->assertJsonValidationErrors(['recurrence_type']);
     }
 
+    /**
+     * 期限付きタスクには期限日が必要であることを確認
+     */
     public function test_deadline_task_requires_due_date()
     {
         [$user, $token] = $this->authenticatedUser();
