@@ -12,7 +12,7 @@
 
       <!-- Register Form -->
       <BaseCard class="mt-8 fade-in-up stagger-1">
-        <form @submit.prevent="handleRegister" class="space-y-6">
+        <form @submit.prevent="handleRegister" class="space-y-6" dusk="register-form">
           <!-- Name -->
           <BaseInput
             v-model="form.name"
@@ -22,6 +22,7 @@
             required
             :error="errors.name"
             autocomplete="name"
+            dusk="name-input"
           />
 
           <!-- Email -->
@@ -33,6 +34,7 @@
             required
             :error="errors.email"
             autocomplete="email"
+            dusk="email-input"
           />
 
           <!-- Password -->
@@ -45,6 +47,7 @@
               required
               :error="errors.password"
               autocomplete="new-password"
+              dusk="password-input"
             />
             <p class="text-xs text-gray-500 mt-1 ml-1">
               8文字以上、大文字・小文字・数字・記号を含む必要があります
@@ -60,6 +63,7 @@
             required
             :error="errors.password_confirmation"
             autocomplete="new-password"
+            dusk="password-confirmation-input"
           />
 
           <!-- Password Strength Indicator -->
@@ -95,6 +99,7 @@
               v-model="form.agreeToTerms"
               type="checkbox"
               class="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              dusk="terms-checkbox"
             />
             <label for="terms" class="ml-2 text-sm text-gray-600">
               <span class="text-primary-600 hover:text-primary-500 cursor-pointer">利用規約</span>
@@ -116,6 +121,7 @@
             loading-text="登録中..."
             full-width
             class="animate-fade-in hover-scale"
+            dusk="submit-button"
           >
             アカウント作成
           </BaseButton>

@@ -3,6 +3,7 @@
     :type="type"
     :disabled="disabled || loading"
     :class="buttonClasses"
+    v-bind="$attrs"
     @click="handleClick"
   >
     <div v-if="loading" class="flex items-center">
@@ -34,6 +35,10 @@ interface Props {
   fullWidth?: boolean
   rounded?: boolean
 }
+
+defineOptions({
+  inheritAttrs: false
+})
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'primary',

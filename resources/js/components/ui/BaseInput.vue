@@ -21,6 +21,7 @@
         :required="required"
         :autocomplete="autocomplete"
         :class="inputClasses"
+        v-bind="$attrs"
         @input="handleInput"
         @blur="handleBlur"
         @focus="handleFocus"
@@ -55,6 +56,10 @@ interface Props {
   suffixIcon?: any
   size?: 'sm' | 'md' | 'lg'
 }
+
+defineOptions({
+  inheritAttrs: false
+})
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'text',
